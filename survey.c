@@ -1,27 +1,5 @@
 #include "prototype.h"
 
-
-/// @brief Returns the coordinates of the hex in a given direction, gives 
-///     invalid coord if the move would place the hex off the board.
-/// @param loc  - Current Location
-/// @param global_dir  - Direction to move, given from the global perspective
-/// @return 
-COORD hex_movement(COORD loc, int global_dir){
-
-    int parity = loc.r & 1;
-    COORD dir = HEX_MOV[parity][global_dir];
-    COORD result = {loc.c + dir.c, loc.r + dir.r};
-
-    if (result.c < 0 || result.r < 0 
-     || result.c >= PLAY_MAP_COLUMNS || result.r >= PLAY_MAP_ROWS){
-        result.c = -1,
-        result.r = -1;
-    }
-    return result;
-}
-
-
-
 /// @brief Finds and returns the tile in a given global direction. Since this
 ///         is a hex grid, there are 6 cases. Since it is a rectangular grid,
 ///         and not a tilted grid, it requires different calculations when 
@@ -35,132 +13,132 @@ COORD hex_movement(COORD loc, int global_dir){
 /// @param drone        The drone - incluides information about starting tile 
 ///                     
 /// @return a pointer to the updated tile
-// TILE* navigate_hex(int direction, TILE *map_start, DRONE *drone, int move){
-//     int c = drone->Loc.c;
-//     int r = drone->Loc.r;
-//     TILE *final_hex = map_start;
-//     if (r % 2 == 1){
-//         switch (direction % 6){
-//                 case 0: // True North (C+1, R)
-//                     if (c+1 < PLAY_MAP_COLUMNS){
-//                         final_hex += c+1 + (r*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.c += 1;
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//                 case 1: // True North-East (C+1, R+1)
-//                     if (c+1 < PLAY_MAP_COLUMNS && r+1 < PLAY_MAP_ROWS){
-//                         final_hex +=c+1 + ((r+1)*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.c += 1;
-//                             drone->Loc.r    += 1;
-//                         }
-//                     }                    
-//                     else final_hex = NULL;
-//                     break;
-//                 case 2: // True South-East (C, R+1)
-//                     if (r+1 < PLAY_MAP_ROWS){
-//                         final_hex += c + ((r+1)*PLAY_MAP_COLUMNS);
-//                         if (move)
-//                             drone->Loc.r += 1;
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//                 case 3: // True South (C-1, R)
-//                     if (c-1 >= 0 ){
-//                         final_hex += (c-1) + (r*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.c += -1;
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//                 case 4: // True South-West (C, R-1)
-//                     if (r-1 >= 0){
-//                         final_hex += c + ((r-1)*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.r += -1;
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//                 case 5: // True North-West (C+1, R-1)
-//                     if (c + 1 < PLAY_MAP_COLUMNS && r-1 >= 0){
-//                         final_hex +=(c+1) + ((r-1)*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.c +=  1;
-//                             drone->Loc.r += -1;
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//         }
-//     }
-//     else {
-//         switch (direction % 6){
-//                 case 0: // True North (C+1, R)
-//                     if (c+1 < PLAY_MAP_COLUMNS){
-//                         final_hex += (c+1) + (r*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.c += 1;                            
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//                 case 1: // True North-East (C, R+1)
-//                     if (r+1 < PLAY_MAP_ROWS){
-//                         final_hex += c + ((r+1)*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.r += 1;
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//                 case 2: // True South-East (C-1, R+1)
-//                     if (c-1 >= 0 && r+1 < PLAY_MAP_ROWS){
-//                         final_hex += (c-1) + ((r+1)*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.c += -1;
-//                             drone->Loc.r += 1;
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//                 case 3: // True South (C-1, R)
-//                     if (c-1 >= 0 ){
-//                         final_hex += (c-1) + (r*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.c += -1;
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//                 case 4: // True South-West (C-1, R-1)
-//                     if (c-1 >= 0 && r-1 >= 0){
-//                         final_hex += (c-1) + ((r-1)*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.c += -1;
-//                             drone->Loc.r += -1;
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//                 case 5: // True North-West (C, R-1)
-//                     if (r-1 >= 0){
-//                         final_hex += (c) + ((r-1)*PLAY_MAP_COLUMNS);
-//                         if (move){
-//                             drone->Loc.r += -1;
-//                         }
-//                     }
-//                     else final_hex = NULL;
-//                     break;
-//         }
-//     }
+TILE* navigate_hex(int direction, TILE *map_start, DRONE *drone, int move){
+    int c = drone->column;
+    int r = drone->row;
+    TILE *final_hex = map_start;
+    if (r % 2 == 1){
+        switch (direction % 6){
+                case 0: // True North (C+1, R)
+                    if (c+1 < PLAY_MAP_COLUMNS){
+                        final_hex += c+1 + (r*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->column += 1;
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+                case 1: // True North-East (C+1, R+1)
+                    if (c+1 < PLAY_MAP_COLUMNS && r+1 < PLAY_MAP_ROWS){
+                        final_hex +=c+1 + ((r+1)*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->column += 1;
+                            drone->row    += 1;
+                        }
+                    }                    
+                    else final_hex = NULL;
+                    break;
+                case 2: // True South-East (C, R+1)
+                    if (r+1 < PLAY_MAP_ROWS){
+                        final_hex += c + ((r+1)*PLAY_MAP_COLUMNS);
+                        if (move)
+                            drone->row += 1;
+                    }
+                    else final_hex = NULL;
+                    break;
+                case 3: // True South (C-1, R)
+                    if (c-1 >= 0 ){
+                        final_hex += (c-1) + (r*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->column += -1;
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+                case 4: // True South-West (C, R-1)
+                    if (r-1 >= 0){
+                        final_hex += c + ((r-1)*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->row += -1;
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+                case 5: // True North-West (C+1, R-1)
+                    if (c + 1 < PLAY_MAP_COLUMNS && r-1 >= 0){
+                        final_hex +=(c+1) + ((r-1)*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->column +=  1;
+                            drone->row    += -1;
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+        }
+    }
+    else {
+        switch (direction % 6){
+                case 0: // True North (C+1, R)
+                    if (c+1 < PLAY_MAP_COLUMNS){
+                        final_hex += (c+1) + (r*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->column += 1;                            
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+                case 1: // True North-East (C, R+1)
+                    if (r+1 < PLAY_MAP_ROWS){
+                        final_hex += c + ((r+1)*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->row += 1;
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+                case 2: // True South-East (C-1, R+1)
+                    if (c-1 >= 0 && r+1 < PLAY_MAP_ROWS){
+                        final_hex += (c-1) + ((r+1)*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->column += -1;
+                            drone->row += 1;
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+                case 3: // True South (C-1, R)
+                    if (c-1 >= 0 ){
+                        final_hex += (c-1) + (r*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->column += -1;
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+                case 4: // True South-West (C-1, R-1)
+                    if (c-1 >= 0 && r-1 >= 0){
+                        final_hex += (c-1) + ((r-1)*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->column += -1;
+                            drone->row += -1;
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+                case 5: // True North-West (C, R-1)
+                    if (r-1 >= 0){
+                        final_hex += (c) + ((r-1)*PLAY_MAP_COLUMNS);
+                        if (move){
+                            drone->row += -1;
+                        }
+                    }
+                    else final_hex = NULL;
+                    break;
+        }
+    }
 
-//     return final_hex; 
-// }
+    return final_hex; 
+}
 
 
 /// @brief Perform the Survey action, which will print a list of tile 
@@ -174,10 +152,8 @@ void survey(DRONE* drone, TILE *map_start){
 
     char direction[6][12] = { "North:", "North-East:", "South-East:", 
                             "South:", "South-West:", "North-West:"};
-    TILE *starting_tile = map_start + drone->Loc.c + (drone->Loc.r*PLAY_MAP_COLUMNS);
-    // TILLE *relative_tile = NULL;
-    COORD relative_tile = {-1, -1};
-    TILE *new_tile = NULL;
+    TILE *starting_tile = map_start + drone->column + (drone->row*PLAY_MAP_COLUMNS);
+    TILE *relative_tile = NULL;
     int current_direction = drone->heading;
     int height_difference;
 
@@ -187,23 +163,19 @@ void survey(DRONE* drone, TILE *map_start){
 
     
     for (int i = 0; i < 6; i++){
-        relative_tile = hex_movement(drone->Loc, i); 
-        // relative_tile = navigate_hex(current_direction + i, map_start, drone, 0);
+        relative_tile = navigate_hex(current_direction + i, map_start, drone, 0);
         printf("\nTo the %-13s", direction[i]);
-            // if (relative_tile == NULL) {
-            if (relative_tile.c == -1 || relative_tile.r == -1){
+            if (relative_tile == NULL) {
                 printf("Map Edge.");
                 continue;
             }
-            
-            new_tile = map_start + relative_tile.c + (relative_tile.r*PLAY_MAP_COLUMNS);
-            print_biome_code(new_tile);
-            height_difference = elevation_change(starting_tile, new_tile);
+            print_biome_code(relative_tile);
+            height_difference = elevation_change(starting_tile, relative_tile);
             printf("%+d", height_difference);
             if (height_difference > 2 || height_difference < -2)
                 printf(" Cliff!!");
-            if ((new_tile->biome != starting_tile->biome )
-                && (new_tile->biome == 0 || starting_tile->biome == 0))
+            if ((relative_tile->biome != starting_tile->biome )
+                && (relative_tile->biome == 0 || starting_tile->biome == 0))
                 printf(" Shore");
             print_features(feature_check(current_direction + i, starting_tile),
                             i);

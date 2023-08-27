@@ -20,7 +20,7 @@ int game_start(TILE *map, DRONE *red_drone, DRONE *blue_drone){
     //Main Input loop - "exit" to quit
     
     int valid = -1;
-    printf(" (%d, %d), %d", red_drone->Loc.c, red_drone->Loc.r, red_drone->heading);
+    printf(" (%d, %d), %d", red_drone->column, red_drone->row, red_drone->heading);
     survey(red_drone, map);
     printf("\n");
     
@@ -37,8 +37,7 @@ int game_start(TILE *map, DRONE *red_drone, DRONE *blue_drone){
 
         survey(blue_drone, map);
 
-        if (blue_drone->Loc.c == red_drone->Loc.c 
-         && blue_drone->Loc.r == red_drone->Loc.r)
+        if (blue_drone->column == red_drone->column && blue_drone->row == red_drone->row)
             finish = 0;
     }
 
@@ -212,28 +211,27 @@ int _explore(int num_directions, char (*move)[TOKEN_LENGTH], DRONE *drone, TILE 
     }
     
     printf("Executing expoloration. . . \n\n");
-    TILE *current_tile = map + (drone->Loc.c) + (drone->Loc.r * PLAY_MAP_COLUMNS);
+    TILE *current_tile = map + (drone->column) + (drone->row * PLAY_MAP_COLUMNS);
     for (int i = 0; i < 6; i++){
         if (directions[i] == -1)
             break;
         int global_direction = directions[i] + drone->heading;
-        printf("%d %d \n", global_direction, drone->heading);
-        COORD candidate = hex_movement(drone->Loc, global_direction);
-        if (candidate.c == -1) {
+        TILE *candidate = navigate_hex(global_direction, map, drone, 0);
+        if (candidate == NULL) {
             printf("Map edge - area beyond this point outside of mission parameters."); 
             break;
         }
-        TILE *new_tile = map + candidate.c + (candidate.r*PLAY_MAP_COLUMNS);
-        int height_difference = new_tile->height - current_tile->height;
+        int height_difference = candidate->height - current_tile->height;
         if (height_difference > 2 || height_difference < -2) {
             printf("\nObstruction detected - Cliff. Stopping all movement.");
             break;
         }
-
-        _travel_report(global_direction, drone->heading, current_tile->height, new_tile); 
-        
+        _travel_report(global_direction, drone->heading, candidate->height, 
+                        navigate_hex(global_direction, map, drone, 1));
     }
+
 }
+
 
 int _convert_input(char *text){
 

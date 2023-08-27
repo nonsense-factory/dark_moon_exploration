@@ -19,23 +19,6 @@
 #define TOKEN_LENGTH 26
 #define DELIMITERS "\040\n\t(){}[]<>;,./=+-!:?*"
 
-
-
-typedef struct coords{
-    int c, r;
-} COORD;
-
-static COORD HEX_MOV[2][6]  = {
-    //[0] = Even Row, [1] = Odd row
-    //[0]=N, [1]=NE, [2]=SE, [3]=S, [4]=SW, [5]= NW
-    { // Even rows
-    {+1,  0},{ 0, +1},{-1, +1},{-1,  0},{-1, -1},{ 0, -1} 
-    },
-    { // Odd rows
-    {+1,  0},{+1, +1},{ 0, +1},{-1,  0},{ 0, -1},{+1, -1},
-    }
-};
-
 typedef struct tile
 {
   int height;
@@ -50,9 +33,9 @@ typedef struct tile
 
 typedef struct drone
 {
-  COORD Loc;
+  int column;
+  int row;
   int heading;
-  //Other stuff
 } DRONE;
 
 int build_map(FILE* in_fp, TILE* board_ptr);
@@ -68,7 +51,6 @@ int game_start(TILE *map, DRONE *red_drone, DRONE *blude_drone);
 char feature_check(int global_direction, TILE *map_hex);
 TILE* navigate_hex(int direction, TILE *map_start, DRONE *drone, int move);
 void to_lower(char *to_lower);
-COORD hex_movement(COORD loc, int global_dir);
 
 
 #endif

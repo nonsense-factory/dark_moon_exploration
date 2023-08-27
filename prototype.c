@@ -11,8 +11,8 @@ int main(int argc, char *argv[]){
     FILE *in_fp;
     TILE map_board[PLAY_MAP_COLUMNS * PLAY_MAP_ROWS];
     TILE *board_ptr = map_board;
-    DRONE drone_1 = {{0, 0}, 0};
-    DRONE drone_2 = {{0, 0}, 0};
+    DRONE drone_1 = {0, 0, 0};
+    DRONE drone_2 = {0, 0, 0};
 
     printf("\nBuilding the Moon.\n");
 
@@ -98,14 +98,14 @@ void randomize_drone(DRONE *drone_1, DRONE* drone_2, TILE *board_ptr){
     srand((unsigned) time(&t));
     int random1 = rand() % 65536;
 
-    drone_1->Loc.c = (random1) % PLAY_MAP_COLUMNS;
-    drone_1->Loc.r = (random1 / 10) %  PLAY_MAP_ROWS;
+    drone_1->column = (random1) % PLAY_MAP_COLUMNS;
+    drone_1->row = (random1 / 10) %  PLAY_MAP_ROWS;
     drone_1->heading = random1 % 6;
-    int tile_position = drone_1->Loc.c + (PLAY_MAP_COLUMNS * drone_1->Loc.r);
+    int tile_position = drone_1->column + (PLAY_MAP_COLUMNS * drone_1->row);
 
     int random2 = rand() % 131072;
-    drone_2->Loc.c = (random2 / 10 ) % PLAY_MAP_COLUMNS;
-    drone_2->Loc.r = random2 % PLAY_MAP_ROWS;
+    drone_2->column = (random2 / 10 ) % PLAY_MAP_COLUMNS;
+    drone_2->row = random2 % PLAY_MAP_ROWS;
     drone_2->heading = (random2 /100) % 6;
-    tile_position = drone_2->Loc.c + (PLAY_MAP_COLUMNS *drone_2->Loc.r);
+    tile_position = drone_2->column + (PLAY_MAP_COLUMNS *drone_2->row);
 }
