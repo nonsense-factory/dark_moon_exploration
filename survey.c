@@ -165,20 +165,20 @@ void survey(DRONE* drone, TILE *map_start){
     for (int i = 0; i < 6; i++){
         relative_tile = navigate_hex(current_direction + i, map_start, drone, 0);
         printf("\nTo the %-13s", direction[i]);
-            if (relative_tile == NULL) {
-                printf("Map Edge.");
-                continue;
-            }
-            print_biome_code(relative_tile);
-            height_difference = elevation_change(starting_tile, relative_tile);
-            printf("%+d", height_difference);
-            if (height_difference > 2 || height_difference < -2)
-                printf(" Cliff!!");
-            if ((relative_tile->biome != starting_tile->biome )
-                && (relative_tile->biome == 0 || starting_tile->biome == 0))
-                printf(" Shore");
-            print_features(feature_check(current_direction + i, starting_tile),
-                            i);
+        if (relative_tile == NULL) {
+            printf("Map Edge.");
+            continue;
+        }
+        print_biome_code(relative_tile);
+        height_difference = elevation_change(starting_tile, relative_tile);
+        printf("%+d", height_difference);
+        if (height_difference > 2 || height_difference < -2)
+            printf(" Cliff!!");
+        if ((relative_tile->biome != starting_tile->biome )
+            && (relative_tile->biome == 0 || starting_tile->biome == 0))
+            printf(" Shore");
+        print_features(feature_check(current_direction + i, starting_tile),
+                        i);
     }
 }
 
