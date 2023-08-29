@@ -58,6 +58,6 @@ int main(int argc, char* argv[]){
     print_map(map);
     game_start(1, map, &drone_1, &drone_2);
 
-    printf("\n\n~~~~~~~~~~~~~PRINT_MAP~~~~~~~~~~~~~\n\n");
+    // printf("\n\n~~~~~~~~~~~~~PRINT_MAP~~~~~~~~~~~~~\n\n");
 
 }

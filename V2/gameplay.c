@@ -79,7 +79,9 @@ int game_start(char game_type, MAP map, DRONE *red_drone, DRONE *blue_drone){
     do {
         turn++;
         fun = strategic_action();
+	if (fun == 0) continue;
         fun = movement_action(red_drone, map);
+	if (fun == 0) continue;
         fun = survey_action(red_drone, blue_drone, map);        
     } while (fun);
     return fun;
@@ -225,18 +227,19 @@ char feature_check(int global_direction, TILE *map_hex){
 
 
 int strategic_action(){
-  return 0;
+  return 1;
 };
 
 
 int movement_action(DRONE* drone ,MAP map){
     int (*movement[])(DRONE*, MAP) = {Explore, Plan, Ride, Abandon};
     char command_str[40];
-    char *command_ptr;
+    char *command_ptr = command_str;
 
     printf("Drone locomotion initialized ... enter command # ");
-    fgets(&command_str, 39, stdin);
-    command_ptr = strtok(&command_str, DELIMITERS);
+    fgets(command_ptr, 39, stdin);
+    command_ptr = strtok(command_ptr, DELIMITERS);
+    _to_lower(command_ptr);
     int command = string_to_command(command_ptr);
 
     int abandon = (*movement[command])(drone, map);    

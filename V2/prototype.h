@@ -101,5 +101,9 @@ int   travel_report(int global_direction, int drone_offset,
 int strategic_action();
 int movement_action(DRONE* drone, MAP map);
 int survey_action(DRONE* red_drone, DRONE* blue_drone, MAP map);
-
+int Explore(DRONE *drone, MAP map);
+int Abandon(DRONE *drone, MAP map);
+int Ride(DRONE *drone, MAP map);
+int Plan(DRONE *drone, MAP map);
+int string_to_command(char *ptr);
 #endif
