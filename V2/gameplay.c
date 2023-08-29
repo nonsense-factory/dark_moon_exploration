@@ -230,7 +230,44 @@ int strategic_action(){
 
 
 int movement_action(DRONE* drone ,MAP map){
-    printf("Movement action begin: \n");
+    int (*movement[])(DRONE*, MAP) = {Explore, Plan, Ride, Abandon};
+    char command_str[40];
+    char *command_ptr;
+
+    printf("Drone locomotion initialized ... enter command # ");
+    fgets(&command_str, 39, stdin);
+    command_ptr = strtok(&command_str, DELIMITERS);
+    int command = string_to_command(command_ptr);
+
+    int abandon = (*movement[command])(drone, map);    
+    if (abandon == -1)
+        return 0;
+
+    return 1;
+};
+
+int string_to_command(char *ptr){
+    for (int i = 0; i< 4; i++){
+        if(strcmp(ptr, MOVEMENT_STEP[i]) == 0)
+            return i;
+    }
+    return -1;
+}
+
+int survey_action(DRONE *red_drone, DRONE *blue_drone, MAP map){
+    printf("Survey Action Begin: \n");
+    survey(red_drone, map);
+    // suvey(blue_drone, map);
+    return 1;
+};
+  
+int Plan(DRONE *drone, MAP map){
+
+}
+int Ride(DRONE *drone, MAP map){
+
+}
+int Explore(DRONE *drone, MAP map) {
     TILE *next = NULL;
     int glob_dir[6] = {-1,-1,-1,-1,-1,-1};
     int i = 0;
@@ -259,15 +296,10 @@ int movement_action(DRONE* drone ,MAP map){
         travel_report(glob_dir[i], drone->heading, old_height, coord_to_tile(move, map));
         printf("\n");
     }
- 
-
-    return 0;
-};
-
-
-int survey_action(DRONE *red_drone, DRONE *blue_drone, MAP map){
-    printf("Survey Action Begin: \n");
-    survey(red_drone, map);
-    // suvey(blue_drone, map);
     return 1;
 };
+
+int Abandon(DRONE *drone, MAP map){
+    printf("Mission failed. post mission analysis and debriefing to follow.");
+    return -1;
+}

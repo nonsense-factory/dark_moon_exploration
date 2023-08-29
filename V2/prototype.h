@@ -73,7 +73,12 @@ static char BIOMES[7][9] = { "Blue", "Green", "Yellow", "Black", "White",
                              "Purple", "Orange" };
 static char SHORE[2][7] = {" ", " shore"};
 
+static char MOVEMENT_STEP[4][8] = {"explore", "ride", "plan", "abandon"};
+
+
 // MAP build_map(FILE* in_fp);
+MAP   build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp);
+void  print_map(MAP map);
 void  randomize_drone(DRONE *drone_1, DRONE *drone_2, MAP map);
 void  print_tile(TILE* tile);
 int   game_start(char type, MAP map, DRONE *red_drone, DRONE *blude_drone);
@@ -93,9 +98,8 @@ void  survey(DRONE* drone, MAP map);
 int   elevation_change(TILE *a, TILE *b);
 int   travel_report(int global_direction, int drone_offset, 
                     int origin_height, TILE *map_hex);
-
 int strategic_action();
-int movement_action();
+int movement_action(DRONE* drone, MAP map);
 int survey_action(DRONE* red_drone, DRONE* blue_drone, MAP map);
 
 #endif
