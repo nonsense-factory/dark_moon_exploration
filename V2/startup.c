@@ -1,4 +1,6 @@
+// startup.c
 #include "prototype.h"
+
 
 int main(int argc, char* argv[]){
 
@@ -8,7 +10,7 @@ int main(int argc, char* argv[]){
     FILE *biome_fp;
     FILE *river_fp;
     
-    printf("Convert a bunch of excel spreadsheets into a map!");
+    // printf("Convert a bunch of excel spreadsheets into a map!");
 
     if (argc >= 2){
         for (int i = 1; i < argc; i++){
@@ -42,22 +44,23 @@ int main(int argc, char* argv[]){
 
 
 
-    MAP map = build_map(elevation_fp, biome_fp, river_fp);
+    MAP map = BuildMap(elevation_fp, biome_fp, river_fp);
 
     fclose(elevation_fp);
     fclose(biome_fp);
     fclose(river_fp);
 
     DRONE drone_1, drone_2;
-    // randomize_drone(&drone_1, &drone_2, map);
+    // RandomizeDrone(&drone_1, &drone_2, map);
     drone_1.Loc.col = 9;
     drone_1.Loc.row = 7;
     drone_1.heading = 0;
     // drone_1.Loc.c = 7;
     // drone_1.Loc.r = 7;
-    print_map(map);
-    game_start(1, map, &drone_1, &drone_2);
+    // PrintMap(map);
+    GameStart(1, map, &drone_1, &drone_2);
 
     // printf("\n\n~~~~~~~~~~~~~PRINT_MAP~~~~~~~~~~~~~\n\n");
 
 }
+

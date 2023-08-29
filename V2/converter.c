@@ -1,4 +1,4 @@
-
+// converter.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,56 +6,20 @@
 
 #define DELIMS "\040\n,"
 
-
-// typedef struct coord{
-//     int col;
-//     int row;
-// } COORD;
-
-// typedef struct edge{
-//     COORD a;
-//     COORD b;
-// } EDGE;
-
-// typedef struct tile
-// {
-//   int height;
-//   int biome;
-//   char north;
-//   char north_east;
-//   char south_east;
-//   char south;
-//   char south_west;
-//   char north_west;
-// }TILE;
-
-// typedef struct map{
-//     TILE *start;
-//     COORD size;
-//     //EDGE **rivers; 
-// } MAP;
-
-
-
 void place_river(EDGE edge, int whitewater, int direction_from_a, int flow, MAP map);
-
-
-// TILE* coord_to_tile(COORD coord, MAP map){
-//     return map.start + coord.col + coord.row * map.size.col;
-// }
 
 enum DroneDirection {North = 0, NorthEast = 1, SouthEast = 2, 
                    South = 3, SouthWest = 4, NorthWest = 5};
 enum Clockedness   {clockwise = 1, counter_clockwise = 0};
 
-void print_map(MAP map){
+void PrintMap(MAP map){
     TILE *tmp = map.start;
     printf("%d, %d\n", map.size.col, map.size.row);
     for(int i = 0; i < map.size.row;i++){
         for(int j = 0; j < map.size.col; j++){
             COORD where = {j, i};
 
-            TILE *to_print = coord_to_tile(where, map);
+            TILE *to_print = CoordToTile(where, map);
             if (to_print != NULL) printf("{%2d,%2d}",to_print->height, to_print->biome );
         }
     printf("\n");
@@ -64,7 +28,7 @@ void print_map(MAP map){
 }
 
 // Read 3 files into a map program
-MAP build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
+MAP BuildMap(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
         
     int buffer_size = 256;
     int num_cols = 0;
@@ -76,48 +40,48 @@ MAP build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
     elevation = fgets(buffer[0], buffer_size, elevation_fp);
     char *tok = strtok(elevation, DELIMS);
     num_cols = atoi(tok);
-    printf("\n%d\n",num_cols);
+    // printf("\n%d\n",num_cols);
     tok = strtok(NULL, DELIMS);
     num_rows = atoi(tok);
-    printf("\n%d\n",num_rows);
+    // printf("\n%d\n",num_rows);
     
     
     MAP map = {calloc(num_rows*num_cols, sizeof(TILE)), {num_cols, num_rows}};
     TILE *map_pointer = map.start;
-    printf("Malloc successful \n");
+    // printf("Malloc successful \n");
     
-    printf("\n\n~~~~~~~~~~~ELEVATION~~~~~~~~~~~~\n\n");
+    // printf("\n\n~~~~~~~~~~~ELEVATION~~~~~~~~~~~~\n\n");
     // Do the elevation and biome files together
     for (int i = 0; i < num_rows; i++){
         COORD where = {0, i};
         elevation = fgets(buffer[0], buffer_size, elevation_fp);
         tok = strtok(elevation, DELIMS);
         int num = atoi(tok);
-        (coord_to_tile(where, map))->height = atoi(tok);
+        (CoordToTile(where, map))->height = atoi(tok);
         for (int j = 1; j < num_cols; j++){
             where.col = j;
             tok = strtok(NULL, DELIMS);
-            (coord_to_tile(where, map))->height = atoi(tok);
+            (CoordToTile(where, map))->height = atoi(tok);
         }
         // printf("\n")
     }
 
-    printf("\n\n~~~~~~~~~~~~~BIOMES~~~~~~~~~~~~~\n\n");
+    // printf("\n\n~~~~~~~~~~~~~BIOMES~~~~~~~~~~~~~\n\n");
     for (int i = 0; i < num_rows; i++){
         biome = fgets(buffer[1], buffer_size, biome_fp);
         tok = strtok(biome, DELIMS);
         COORD where = {0, i};
         int num = atoi(tok);
-        (coord_to_tile(where, map))->biome = num;
+        (CoordToTile(where, map))->biome = num;
         for (int j = 1; j < num_cols; j++){
             where.col = j;
             tok = strtok(NULL, DELIMS);
             num = atoi(tok);
-            (coord_to_tile(where, map))->biome = num;
+            (CoordToTile(where, map))->biome = num;
         }
     }
     
-    printf("\n\n~~~~~~~~~~~~~RIVERS~~~~~~~~~~~~~\n\n");
+    // printf("\n\n~~~~~~~~~~~~~RIVERS~~~~~~~~~~~~~\n\n");
     // Toss the first line of the river file
     char *river_ptr = fgets(buffer[2], buffer_size, river_fp);
     int num_rivers = atoi(strtok(buffer[2], DELIMS));
@@ -136,7 +100,7 @@ MAP build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
         enum Clockedness flow = (file_flow) ? counter_clockwise: clockwise;    
         int whitewater = 0 ;
 
-        EDGE river_edge = {river_start, hex_movement(river_edge.a, direction, map)};
+        EDGE river_edge = {river_start, HexMovement(river_edge.a, direction, map)};
 
         if (river_edge.b.col == -1 || river_edge.a.col == -1) {
               printf("River flows off map edge.\n");
@@ -149,19 +113,20 @@ MAP build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
         while (*(next_char = strtok(NULL, DELIMS)) != '5'){
             // Jump or no? 
             int next_river = atoi(next_char);
+            printf("\nnext_river %d ",next_river);
             if (next_river % 2 == 0){
                 direction += (flow == clockwise) ? 1 : 5;
-                whitewater = (next_river == 2) ? 1: 0;
+                whitewater = (next_river == 2) ? 1 : 0;
             }
             else {
-                river_edge.a = hex_movement(river_edge.a, direction, map);
+                river_edge.a = HexMovement(river_edge.a, direction, map);
                 flow = (flow == clockwise) ? counter_clockwise : clockwise;
                 direction += (flow == clockwise) ? 4 : 2;
-                whitewater = (next_river == 4) ? 1 : 0;
-            //river_edge.b  = hex_movement(river_edge.a, direction, map);
+                whitewater = (next_river == 3) ? 1 : 0;
+            //river_edge.b  = HexMovement(river_edge.a, direction, map);
             }
             direction %= 6;
-            river_edge.b = hex_movement(river_edge.a, direction, map);
+            river_edge.b = HexMovement(river_edge.a, direction, map);
             if (river_edge.b.col == -1 || river_edge.a.col == -1) {
               printf("River flows off map edge.\n");
               break;
@@ -181,34 +146,36 @@ MAP build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
 
 void place_river(EDGE edge, int whitewater, int direction_from_a, int flow, MAP map){
         
-    printf("{%d,%d}{%d,%d}\n", edge.a.col, edge.a.row, edge.b.col, edge.b.row);
+    // printf("{%d,%d}{%d,%d}\n", edge.a.col, edge.a.row, edge.b.col, edge.b.row);
     char river_a = (flow == clockwise) ?  'a': 'b';
     char river_b = (flow == counter_clockwise) ? 'a' : 'b';
-    river_a += (whitewater) ? 2 : 0;
+    river_a += whitewater*2;
+    river_b += whitewater*2;
+    printf("river_a %c, river_b %c", river_a, river_b);
     switch (direction_from_a % 6){
         case 0:
-            (coord_to_tile(edge.a, map))->north = river_a;
-            (coord_to_tile(edge.b, map))->south = river_b;
+            (CoordToTile(edge.a, map))->north = river_a;
+            (CoordToTile(edge.b, map))->south = river_b;
             break;
         case 1:
-            (coord_to_tile(edge.a, map))->north_east = river_a;
-            (coord_to_tile(edge.b, map))->south_west = river_b;
+            (CoordToTile(edge.a, map))->north_east = river_a;
+            (CoordToTile(edge.b, map))->south_west = river_b;
             break;
         case 2:
-            (coord_to_tile(edge.a, map))->south_east = river_a;
-            (coord_to_tile(edge.b, map))->north_west = river_b;
+            (CoordToTile(edge.a, map))->south_east = river_a;
+            (CoordToTile(edge.b, map))->north_west = river_b;
             break;
         case 3:
-            (coord_to_tile(edge.a, map))->south = river_a;
-            (coord_to_tile(edge.b, map))->north = river_b;
+            (CoordToTile(edge.a, map))->south = river_a;
+            (CoordToTile(edge.b, map))->north = river_b;
             break;
         case 4:
-            (coord_to_tile(edge.a, map))->south_west = river_a;
-            (coord_to_tile(edge.b, map))->north_east = river_b;
+            (CoordToTile(edge.a, map))->south_west = river_a;
+            (CoordToTile(edge.b, map))->north_east = river_b;
             break;
         case 5:
-            (coord_to_tile(edge.a, map))->north_west = river_a;
-            (coord_to_tile(edge.b, map))->south_east= river_b;
+            (CoordToTile(edge.a, map))->north_west = river_a;
+            (CoordToTile(edge.b, map))->south_east= river_b;
             break;
     }
 }
@@ -217,7 +184,7 @@ void place_river(EDGE edge, int whitewater, int direction_from_a, int flow, MAP 
 /// @param drone_1 
 /// @param drone_2 
 /// @param board_ptr  The starting tile of the map.
-void randomize_drone(DRONE *drone_1, DRONE* drone_2, MAP map){
+void RandomizeDrone(DRONE *drone_1, DRONE* drone_2, MAP map){
     time_t t;
     srand((unsigned) time(&t));
     int random1 = rand() % 65536;
@@ -239,7 +206,7 @@ void randomize_drone(DRONE *drone_1, DRONE* drone_2, MAP map){
 /// @param a 
 /// @param b 
 /// @return 
-int elevation_change(TILE *a, TILE *b){
+int ElevationChange(TILE *a, TILE *b){
     if (a == NULL || b == NULL)
         return -200;
     return b->height - a->height;
@@ -253,23 +220,22 @@ int elevation_change(TILE *a, TILE *b){
 /// @param origin_height    Previous tile's height - needed to report Alt change
 /// @param map_hex          Current map hex
 /// @return 
-int travel_report(int global_direction, int drone_offset, 
-                    int origin_height, TILE *map_hex){
+int TravelReport(int global_direction, int drone_offset, int old_height, TILE *map_hex){
     char feature;
     if (map_hex == NULL){
         printf("OBSTRUCTION FOUND!! cannot proceed %s", 
                 DIRECTION[(global_direction+drone_offset)%6]);
                 return -1;
     }
-    printf("Drone moves %s:\n", DIRECTION[(global_direction+6-drone_offset)%6]);
+    printf("\nDrone moves %s:\n", DIRECTION[(global_direction+6-drone_offset)%6]);
 
-    printf("Altitude Change: %+d\n", map_hex->height - origin_height);
+    printf("Altitude Change: %+d\n", map_hex->height - old_height);
     printf("Updated ");
-    print_biome_code(map_hex);
-    printf("\n");
-    if ('\0' != (feature = feature_check((global_direction + 3) % 6, map_hex))){
+    PrintBiomeCode(map_hex);
+    
+    if ('\0' != (feature = FeatureCheck((global_direction + 3) % 6, map_hex))){
         printf("Crossed ");
-        print_features(global_direction + 6 - drone_offset + 3, feature);
-        printf("\n");
+        PrintFeatures(global_direction + 6 - drone_offset + 3, feature);
+    
     }
 }

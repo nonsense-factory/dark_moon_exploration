@@ -77,33 +77,35 @@ static char MOVEMENT_STEP[4][8] = {"explore", "ride", "plan", "abandon"};
 
 
 // MAP build_map(FILE* in_fp);
-MAP   build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp);
-void  print_map(MAP map);
-void  randomize_drone(DRONE *drone_1, DRONE *drone_2, MAP map);
-void  print_tile(TILE* tile);
-int   game_start(char type, MAP map, DRONE *red_drone, DRONE *blude_drone);
-void  to_lower(char *to_lower);
-int   rel_to_global(int rel, int heading);
-int   global_to_rel(int global, int heading);
-COORD hex_movement(COORD loc, int global_dir, MAP map);
-int   input_direction(int heading);
-int   _shore(int cur_biome, int new_biome);
-int   report_elevation(TILE *current, TILE *next);
-TILE* check_boundary(COORD coord, MAP map);
-TILE* coord_to_tile(COORD coord, MAP map);
-char  feature_check(int global_direction, TILE *map_hex);
-void  print_features(int direction, char feature);
-void  print_biome_code(TILE* tile);
-void  survey(DRONE* drone, MAP map);
-int   elevation_change(TILE *a, TILE *b);
-int   travel_report(int global_direction, int drone_offset, 
-                    int origin_height, TILE *map_hex);
-int strategic_action();
-int movement_action(DRONE* drone, MAP map);
-int survey_action(DRONE* red_drone, DRONE* blue_drone, MAP map);
-int Explore(DRONE *drone, MAP map);
-int Abandon(DRONE *drone, MAP map);
-int Ride(DRONE *drone, MAP map);
-int Plan(DRONE *drone, MAP map);
-int string_to_command(char *ptr);
+MAP   BuildMap(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp);
+void  PrintMap(MAP map);
+void  RandomizeDrone(DRONE *drone_1, DRONE *drone_2, MAP map);
+// void  PrintTile(TILE* tile); // < - Unused
+int   GameStart(char type, MAP map, DRONE *red_drone, DRONE *blude_drone);
+void  StrToLower(char *to_lower);
+int   RelToGlobal(int rel, int heading);
+int   GlobalToRel(int global, int heading);
+COORD HexMovement(COORD loc, int global_dir, MAP map);
+int   InputDirection(int heading);
+int   ShoreStr(int cur_biome, int new_biome);
+int   ReportElevation(TILE *current, TILE *next);
+TILE* CheckBoundary(COORD coord, MAP map);
+TILE* CoordToTile(COORD coord, MAP map);
+char  FeatureCheck(int global_direction, TILE *map_hex);
+void  PrintFeatures(int direction, char feature);
+void  PrintBiomeCode(TILE* tile);
+void  Survey(DRONE* drone, MAP map);
+int   ElevationChange(TILE *a, TILE *b);
+int   TravelReport(int global_direction, int drone_offset,
+                    int old_height, TILE *map_hex);
+int   StrategicAction();
+int   MovementAction(DRONE* drone, MAP map);
+int   SurveyAction(DRONE* red_drone, DRONE* blue_drone, MAP map);
+int   Explore(DRONE *drone, MAP map);
+int   Abandon(DRONE *drone, MAP map);
+int   Ride(DRONE *drone, MAP map);
+int   Plan(DRONE *drone, MAP map);
+int   StringToCommand(char *ptr);
+TILE* DroneTravel(int dir, DRONE* drone, MAP map);
+int   IsImpassibleShore(TILE *prev, TILE *next);
 #endif

@@ -1,48 +1,50 @@
+// gameplay.c
 #include "prototype.h"
 
 int  _convert_input(char *text);
-void _to_lower(char *to_lower);
+void StrToLower(char *to_lower);
 
 
-void survey(DRONE *drone, MAP map){
-    TILE *current_tile = coord_to_tile(drone->Loc, map);    
+void Survey(DRONE *drone, MAP map){
+    TILE *current_tile = CoordToTile(drone->Loc, map);    
     int glob_dir; 
     TILE *next_tile = NULL;
         
     // survey here:
-    print_biome_code(current_tile);
+    PrintBiomeCode(current_tile);
     printf("\n{%d, %d}\n", drone->Loc.col, drone->Loc.row);
     // survey surroundings
     for (int rel_dir = 0; rel_dir < 6; rel_dir++){
         printf("To the %-12s: ", DIRECTION[rel_dir]);
         
         // check that tile is within the map
-        glob_dir = rel_to_global(rel_dir, drone->heading);
-        next_tile = check_boundary(hex_movement(drone->Loc, glob_dir, map), map);
+        glob_dir = RelToGlobal(rel_dir, drone->heading);
+        next_tile = CheckBoundary(HexMovement(drone->Loc, glob_dir, map), map);
         if (next_tile == NULL){
             printf("Map edge...\n");
             continue;
         }
         // Print data for tile
-        print_biome_code(next_tile);
-        report_elevation(current_tile, next_tile);
-        printf("%s",SHORE[_shore(current_tile->biome, next_tile->biome)]);
-        printf("/%c/ ", feature_check(glob_dir, current_tile));
-        print_features(rel_dir, feature_check(glob_dir, current_tile));
+        PrintBiomeCode(next_tile);
+        ReportElevation(current_tile, next_tile);
+        printf("%s",SHORE[ShoreStr(current_tile->biome, next_tile->biome)]);
+        // printf("/%c/ ", FeatureCheck(glob_dir, current_tile));
+        PrintFeatures(rel_dir, FeatureCheck(glob_dir, current_tile));
         printf("\n");
 
     }
+    printf("\n");
 }
 
 // Convert coordinates to a tile
-TILE* coord_to_tile(COORD coord, MAP map ){
+TILE* CoordToTile(COORD coord, MAP map ){
     if(coord.col == -1 || coord.row == -1)
         return NULL;
     return map.start + coord.col + (coord.row*map.size.col);
 }
 
 // Prints the elevation change, and reports if it's a cliff - Possibly refactor?
-int report_elevation(TILE *current, TILE *next){
+int ReportElevation(TILE *current, TILE *next){
     int change = next->height - current->height;
     printf("%+d ", change);
     if (change < -2 || change > 2)
@@ -51,38 +53,38 @@ int report_elevation(TILE *current, TILE *next){
 }
 
 // Checks to see if a coordinate is within the playable area
-TILE* check_boundary(COORD coord, MAP map){
+TILE* CheckBoundary(COORD coord, MAP map){
     if (coord.col == -1 || coord.row == -1)
         return NULL;
     return map.start + coord.col + (coord.row*map.size.col);
 }
 
 // Checks if an edge is a shore
-int _shore(int cur_biome, int new_biome){
+int ShoreStr(int cur_biome, int new_biome){
     return (cur_biome != 0 && new_biome == 0) 
         || (cur_biome == 0 && new_biome != 0 ) ? 1 : 0;
 }
 
 // Converts text to lower case
-void _to_lower(char *to_lower){
+void StrToLower(char *to_lower){
     char *tmp = to_lower;
     while(*(tmp) != '\040' && *(tmp) != '\n' && *(tmp) != '\0')
         *(tmp++) |=  '\040'; 
 }
 
 // Game Entry Point and Main loop:
-int game_start(char game_type, MAP map, DRONE *red_drone, DRONE *blue_drone){
+int GameStart(char game_type, MAP map, DRONE *red_drone, DRONE *blue_drone){
     printf("Game begins\n\n");
     int fun = 1;
     int turn = 0;
     // Main Game loop - One turn per loop:    
     do {
         turn++;
-        fun = strategic_action();
+        fun = StrategicAction();
 	if (fun == 0) continue;
-        fun = movement_action(red_drone, map);
+        fun = MovementAction(red_drone, map);
 	if (fun == 0) continue;
-        fun = survey_action(red_drone, blue_drone, map);        
+        fun = SurveyAction(red_drone, blue_drone, map);        
     } while (fun);
     return fun;
 }
@@ -94,7 +96,7 @@ int game_start(char game_type, MAP map, DRONE *red_drone, DRONE *blue_drone){
 /// @param loc  - Current Location
 /// @param global_dir  - Direction to move, given from the global perspective
 /// @return 
-COORD hex_movement(COORD loc, int global_dir, MAP map){
+COORD HexMovement(COORD loc, int global_dir, MAP map){
     int parity = loc.row & 1;
     COORD dir = HEX_MOV[parity][global_dir % 6];
     COORD result = {loc.col+ dir.col, loc.row + dir.row};
@@ -108,17 +110,17 @@ COORD hex_movement(COORD loc, int global_dir, MAP map){
 
 //Points that use the relative direction:
 // Translates relative direction to global direction and back. 
-int rel_to_global(int rel, int heading){
+int RelToGlobal(int rel, int heading){
     return (rel + 6 - heading) % 6; 
 }
-int global_to_rel(int global, int heading){
+int GlobalToRel(int global, int heading){
     return (global + heading) % 6;
 }
 
 
 // Takes 2 characters of input from a user and converts it into a cardinal 
 //  direction (N, NE, SE, S, SW, NW,)
-int input_direction(int heading){
+int InputDirection(int heading){
     char input[3] = "";
     char *input_pointer = input;
     int invalid = 2;
@@ -133,12 +135,12 @@ int input_direction(int heading){
             continue;
         }
 
-        _to_lower(input_pointer);
+        StrToLower(input_pointer);
         if(*input_pointer == 'x') {
             direction = -1;
             break; 
         }
-        direction = rel_to_global(_convert_input(input_pointer), heading);
+        direction = RelToGlobal(_convert_input(input_pointer), heading);
         invalid = (!(direction >= 0 && direction <6));
     }while (invalid);
 
@@ -148,7 +150,7 @@ int input_direction(int heading){
 // Converts simple input from cardinal initials to directional number
 // + Flushes the input buffer for the 2 char strings. 
 int _convert_input(char *text){
-    _to_lower(text);
+    StrToLower(text);
     if (*text == 'x'){
         return -1;
     }
@@ -164,7 +166,7 @@ int _convert_input(char *text){
 
 /// @brief Prints the biome code for a given tile with consistant formatting.
 /// @param tile 
-void print_biome_code(TILE* tile) {
+void PrintBiomeCode(TILE* tile) {
     printf("Biome code = %-10s ",BIOMES[tile->biome]);
 }
 
@@ -173,7 +175,7 @@ void print_biome_code(TILE* tile) {
 ///     looking. It will only print if there is a feature in that direction
 /// @param feature  This takes a feature key, example: a, b, c or d for rivers
 /// This Function does not detect emergent features like Coasts or Cliffs
-void print_features(int direction, char feature){
+void PrintFeatures(int direction, char feature){
     if (feature == '\0' || feature == '0')
         return;
 
@@ -205,7 +207,7 @@ void print_features(int direction, char feature){
 /// @param global_direction 
 /// @param map_hex 
 /// @return 
-char feature_check(int global_direction, TILE *map_hex){
+char FeatureCheck(int global_direction, TILE *map_hex){
     switch (global_direction % 6){
         case 0:
             return map_hex->north;
@@ -226,12 +228,12 @@ char feature_check(int global_direction, TILE *map_hex){
 }
 
 
-int strategic_action(){
+int StrategicAction(){
   return 1;
 };
 
 
-int movement_action(DRONE* drone ,MAP map){
+int MovementAction(DRONE* drone ,MAP map){
     int (*movement[])(DRONE*, MAP) = {Explore, Plan, Ride, Abandon};
     char command_str[40];
     char *command_ptr = command_str;
@@ -239,8 +241,8 @@ int movement_action(DRONE* drone ,MAP map){
     printf("Drone locomotion initialized ... enter command # ");
     fgets(command_ptr, 39, stdin);
     command_ptr = strtok(command_ptr, DELIMITERS);
-    _to_lower(command_ptr);
-    int command = string_to_command(command_ptr);
+    StrToLower(command_ptr);
+    int command = StringToCommand(command_ptr);
 
     int abandon = (*movement[command])(drone, map);    
     if (abandon == -1)
@@ -249,7 +251,7 @@ int movement_action(DRONE* drone ,MAP map){
     return 1;
 };
 
-int string_to_command(char *ptr){
+int StringToCommand(char *ptr){
     for (int i = 0; i< 4; i++){
         if(strcmp(ptr, MOVEMENT_STEP[i]) == 0)
             return i;
@@ -257,52 +259,94 @@ int string_to_command(char *ptr){
     return -1;
 }
 
-int survey_action(DRONE *red_drone, DRONE *blue_drone, MAP map){
-    printf("Survey Action Begin: \n");
-    survey(red_drone, map);
+int SurveyAction(DRONE *red_drone, DRONE *blue_drone, MAP map){
+    printf("\nSurvey Action Begin: \n");
+    Survey(red_drone, map);
     // suvey(blue_drone, map);
     return 1;
 };
   
 int Plan(DRONE *drone, MAP map){
-
+    printf("Commence Planned movement # \n");
+    return 1;
 }
 int Ride(DRONE *drone, MAP map){
-
+    printf("Ride command selected. Proceed with caution. # \n");
+    return 1; 
 }
 int Explore(DRONE *drone, MAP map) {
     TILE *next = NULL;
     int glob_dir[6] = {-1,-1,-1,-1,-1,-1};
     int i = 0;
 
-    printf("User input\n");
+    printf("\nUser input\n");
     for (int i = 0; i < 6; i++){
-        glob_dir[i] = input_direction(drone->heading);
+        glob_dir[i] = InputDirection(drone->heading);
         if (glob_dir[i] == -1)
             break;
     }    
     printf("input complete\n");
 
     for (int i = 0; i < 6; i++){
-        int old_height = (coord_to_tile(drone->Loc, map))->height;
         if (glob_dir[i] == -1)
             break;
-        COORD move = hex_movement(drone->Loc, glob_dir[i], map);
-        if (move.col== -1 || move.row == -1){
-            printf("Map edge...\n");
-            break;
+        int old_height = (CoordToTile(drone->Loc, map))->height;
+        TILE *next_tile = DroneTravel(glob_dir[i], drone, map);
+        if (next_tile){
+            TravelReport(glob_dir[i], drone->heading, old_height, next_tile);
         }
-        
-        drone->Loc.col = move.col;
-        drone->Loc.row = move.row;
-
-        travel_report(glob_dir[i], drone->heading, old_height, coord_to_tile(move, map));
         printf("\n");
     }
     return 1;
 };
 
+TILE* DroneTravel(int dir, DRONE* drone, MAP map){
+        TILE *prev_tile = CoordToTile(drone->Loc, map);
+        int valid_move = 1;
+        COORD move = HexMovement(drone->Loc, dir, map);
+        //Out of Bounds
+        if (move.col == -1 || move.row == -1){
+            printf("ERROR! ~~Area outside of mission parameters~~ \n");
+            return NULL;
+        }
+        TILE *next_tile = CoordToTile(move, map);
+        int ele_change = ElevationChange(prev_tile, next_tile);
+        char river = FeatureCheck(dir, prev_tile);
+        
+        //WhiteWater
+        if (river == 'c' || river == 'd'){
+            printf("WARNING water flow rates detected to be above acceptable parameters. ");
+            valid_move = 0;
+        }
+        // Shore
+        else if (IsImpassibleShore(prev_tile, next_tile)){
+            printf("Significant oceanographic features present. ");
+            valid_move = 0;
+        }
+        // Cliff
+        else if (ele_change > 2 || ele_change < -2){
+            printf("Drone not rated for 40+%% incline. ");
+            valid_move = 0;
+        }
+        // More to come...
+
+        if (valid_move){
+            drone->Loc.col = move.col;
+            drone->Loc.row = move.row;
+            return next_tile;
+        }
+        else {
+            printf("Cannot Execute command.\n");
+            return NULL;
+        }
+
+};
+
 int Abandon(DRONE *drone, MAP map){
     printf("Mission failed. post mission analysis and debriefing to follow.");
     return -1;
+}
+
+int IsImpassibleShore(TILE *prev, TILE *next){
+    return !(prev->biome == 0) && (next->biome == 0);
 }
