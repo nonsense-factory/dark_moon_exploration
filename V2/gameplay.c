@@ -11,8 +11,7 @@ void survey(DRONE *drone, MAP map){
         
     // survey here:
     print_biome_code(current_tile);
-    printf("\n");
-        
+    printf("\n{%d, %d}\n", drone->Loc.col, drone->Loc.row);
     // survey surroundings
     for (int rel_dir = 0; rel_dir < 6; rel_dir++){
         printf("To the %-12s: ", DIRECTION[rel_dir]);
@@ -28,6 +27,7 @@ void survey(DRONE *drone, MAP map){
         print_biome_code(next_tile);
         report_elevation(current_tile, next_tile);
         printf("%s",SHORE[_shore(current_tile->biome, next_tile->biome)]);
+        printf("/%c/ ", feature_check(glob_dir, current_tile));
         print_features(rel_dir, feature_check(glob_dir, current_tile));
         printf("\n");
 
@@ -172,17 +172,18 @@ void print_biome_code(TILE* tile) {
 /// @param feature  This takes a feature key, example: a, b, c or d for rivers
 /// This Function does not detect emergent features like Coasts or Cliffs
 void print_features(int direction, char feature){
-    if (feature == '0')
+    if (feature == '\0' || feature == '0')
         return;
-    
-    if (feature == 'A'|| feature == 'a' || feature == 'B' || feature == 'b')
+
+    feature = tolower(feature);
+    if (feature == 'a' || feature == 'b')
         printf(" a river flowing ");
-    else if(feature == 'C' ||feature == 'D' ||feature == 'c' ||feature == 'd')
+    else if(feature == 'c' ||feature == 'd')
         printf(" whitewater flowing ");
 
     // If the feature is counter-clockwise, rotate it by 3
 
-    if (feature == 'B' || feature == 'D' || feature == 'b' || feature == 'd' )
+    if (feature == 'b' || feature == 'd' )
         direction += 3;
 
     direction %= 6;
@@ -229,34 +230,43 @@ int strategic_action(){
 
 
 int movement_action(DRONE* drone ,MAP map){
-
+    printf("Movement action begin: \n");
     TILE *next = NULL;
-    int glob_dir[6];
+    int glob_dir[6] = {-1,-1,-1,-1,-1,-1};
     int i = 0;
-    
-    do{
-        for (int i = 0; i < 6; i++){
-            glob_dir[i] = input_direction(drone->heading);
-            if (glob_dir[i] == -1)
-                break;
-        }    
 
+    printf("User input\n");
+    for (int i = 0; i < 6; i++){
+        glob_dir[i] = input_direction(drone->heading);
+        if (glob_dir[i] == -1)
+            break;
+    }    
+    printf("input complete\n");
+
+    for (int i = 0; i < 6; i++){
+        int old_height = (coord_to_tile(drone->Loc, map))->height;
+        if (glob_dir[i] == -1)
+            break;
         COORD move = hex_movement(drone->Loc, glob_dir[i], map);
         if (move.col== -1 || move.row == -1){
             printf("Map edge...\n");
             break;
         }
+        
+        drone->Loc.col = move.col;
+        drone->Loc.row = move.row;
 
-        next = coord_to_tile(hex_movement(drone->Loc, glob_dir[i++], map), map);
-        // drone move:  
-
-    } while (glob_dir[i++] != -1);
+        travel_report(glob_dir[i], drone->heading, old_height, coord_to_tile(move, map));
+        printf("\n");
+    }
+ 
 
     return 0;
 };
 
 
 int survey_action(DRONE *red_drone, DRONE *blue_drone, MAP map){
+    printf("Survey Action Begin: \n");
     survey(red_drone, map);
     // suvey(blue_drone, map);
     return 1;

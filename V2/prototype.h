@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 #define MAP_BUFFER 17
 
@@ -73,22 +74,25 @@ static char BIOMES[7][9] = { "Blue", "Green", "Yellow", "Black", "White",
 static char SHORE[2][7] = {" ", " shore"};
 
 // MAP build_map(FILE* in_fp);
-void randomize_drone(DRONE *drone_1, DRONE *drone_2, MAP map);
-void print_tile(TILE* tile);
-int game_start(char type, MAP map, DRONE *red_drone, DRONE *blude_drone);
-void to_lower(char *to_lower);
-int rel_to_global(int rel, int heading);
-int global_to_rel(int global, int heading);
+void  randomize_drone(DRONE *drone_1, DRONE *drone_2, MAP map);
+void  print_tile(TILE* tile);
+int   game_start(char type, MAP map, DRONE *red_drone, DRONE *blude_drone);
+void  to_lower(char *to_lower);
+int   rel_to_global(int rel, int heading);
+int   global_to_rel(int global, int heading);
 COORD hex_movement(COORD loc, int global_dir, MAP map);
-int input_direction(int heading);
-int _shore(int cur_biome, int new_biome);
-int report_elevation(TILE *current, TILE *next);
+int   input_direction(int heading);
+int   _shore(int cur_biome, int new_biome);
+int   report_elevation(TILE *current, TILE *next);
 TILE* check_boundary(COORD coord, MAP map);
 TILE* coord_to_tile(COORD coord, MAP map);
-char feature_check(int global_direction, TILE *map_hex);
-void print_features(int direction, char feature);
-void print_biome_code(TILE* tile);
-void survey(DRONE* drone, MAP map);
+char  feature_check(int global_direction, TILE *map_hex);
+void  print_features(int direction, char feature);
+void  print_biome_code(TILE* tile);
+void  survey(DRONE* drone, MAP map);
+int   elevation_change(TILE *a, TILE *b);
+int   travel_report(int global_direction, int drone_offset, 
+                    int origin_height, TILE *map_hex);
 
 int strategic_action();
 int movement_action();

@@ -87,9 +87,17 @@ int main(int argc, char* argv[]){
     fclose(biome_fp);
     fclose(river_fp);
 
+    DRONE drone_1, drone_2;
+    // randomize_drone(&drone_1, &drone_2, map);
+    drone_1.Loc.col = 9;
+    drone_1.Loc.row = 7;
+    drone_1.heading = 0;
+    // drone_1.Loc.c = 7;
+    // drone_1.Loc.r = 7;
+    game_start(1, map, &drone_1, &drone_2);
 
     printf("\n\n~~~~~~~~~~~~~PRINT_MAP~~~~~~~~~~~~~\n\n");
-    print_map(map);
+    // print_map(map);
 
 }
 
@@ -99,7 +107,7 @@ int main(int argc, char* argv[]){
 
 enum DroneDirection {North = 0, NorthEast = 1, SouthEast = 2, 
                    South = 3, SouthWest = 4, NorthWest = 5};
-enum Clockedness   {clockwise = 1, counter_clockwise = -1};
+enum Clockedness   {clockwise = 1, counter_clockwise = 0};
 
 void print_map(MAP map){
     TILE *tmp = map.start;
@@ -135,7 +143,7 @@ MAP build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
     printf("\n%d\n",num_rows);
     
     
-    MAP map = {malloc(num_rows*num_cols*sizeof(TILE)), {num_cols, num_rows}};
+    MAP map = {calloc(num_rows*num_cols, sizeof(TILE)), {num_cols, num_rows}};
     TILE *map_pointer = map.start;
     printf("Malloc successful \n");
     
@@ -174,7 +182,7 @@ MAP build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
     // Toss the first line of the river file
     char *river_ptr = fgets(buffer[2], buffer_size, river_fp);
     int num_rivers = atoi(strtok(buffer[2], DELIMS));
-    printf("%d", num_rivers);
+    // printf("%d rivers.\n", num_rivers);
     // while(fgets(buffer[2], buffer_size, river_fp)){
     for(int k = 0; k < num_rivers; k++){
         fgets(river_ptr, buffer_size, river_fp);
@@ -184,13 +192,17 @@ MAP build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
         enum DroneDirection direction = atoi(strtok(NULL, DELIMS));
         int file_flow = atoi(strtok(NULL, DELIMS));
         // Print the starting tile's coordinates
-        printf("%d, %d - \n", river_start.col, river_start.row);
+        // printf("%d, %d - \n", river_start.col, river_start.row);
 
-        enum Clockedness flow = (file_flow) ? clockwise: counter_clockwise;    
+        enum Clockedness flow = (file_flow) ? counter_clockwise: clockwise;    
         int whitewater = 0 ;
 
         EDGE river_edge = {river_start, hex_movement(river_edge.a, direction, map)};
 
+        if (river_edge.b.col == -1 || river_edge.a.col == -1) {
+              printf("River flows off map edge.\n");
+              continue;
+            }
         place_river(river_edge, whitewater, direction, flow, map);
 
         char* next_char;
@@ -199,25 +211,29 @@ MAP build_map(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp){
             // Jump or no? 
             int next_river = atoi(next_char);
             if (next_river % 2 == 0){
-                direction += (flow == clockwise) ? 1 : -1;
+                direction += (flow == clockwise) ? 1 : 5;
                 whitewater = (next_river == 2) ? 1: 0;
-                river_edge.b = hex_movement(river_edge.a, direction, map);
             }
             else {
                 river_edge.a = hex_movement(river_edge.a, direction, map);
+                flow = (flow == clockwise) ? counter_clockwise : clockwise;
                 direction += (flow == clockwise) ? 4 : 2;
                 whitewater = (next_river == 4) ? 1 : 0;
-                river_edge.b  = hex_movement(river_edge.a, direction, map);
+            //river_edge.b  = hex_movement(river_edge.a, direction, map);
             }
-            
-            place_river(river_edge, whitewater, direction, flow, map);
+            direction %= 6;
+            river_edge.b = hex_movement(river_edge.a, direction, map);
+            if (river_edge.b.col == -1 || river_edge.a.col == -1) {
+              printf("River flows off map edge.\n");
+              break;
             }
             // Update feature direction - need whitewater, direction, tile 1 and 2, clockwise
-
+            place_river(river_edge, whitewater, direction, flow, map);
         }
-    
-    return map;
+
     }
+    return map;
+}
 
 
 
@@ -228,31 +244,93 @@ void place_river(EDGE edge, int whitewater, int direction_from_a, int flow, MAP 
         
     printf("{%d,%d}{%d,%d}\n", edge.a.col, edge.a.row, edge.b.col, edge.b.row);
     char river_a = (flow == clockwise) ?  'a': 'b';
+    char river_b = (flow == counter_clockwise) ? 'a' : 'b';
     river_a += (whitewater) ? 2 : 0;
     switch (direction_from_a % 6){
         case 0:
             (coord_to_tile(edge.a, map))->north = river_a;
-            (coord_to_tile(edge.b, map))->south = river_a + flow;
+            (coord_to_tile(edge.b, map))->south = river_b;
             break;
         case 1:
             (coord_to_tile(edge.a, map))->north_east = river_a;
-            (coord_to_tile(edge.b, map))->south_west = river_a + flow;
+            (coord_to_tile(edge.b, map))->south_west = river_b;
             break;
         case 2:
             (coord_to_tile(edge.a, map))->south_east = river_a;
-            (coord_to_tile(edge.b, map))->north_west = river_a + flow;
+            (coord_to_tile(edge.b, map))->north_west = river_b;
             break;
         case 3:
             (coord_to_tile(edge.a, map))->south = river_a;
-            (coord_to_tile(edge.b, map))->north = river_a + flow;
+            (coord_to_tile(edge.b, map))->north = river_b;
             break;
         case 4:
             (coord_to_tile(edge.a, map))->south_west = river_a;
-            (coord_to_tile(edge.b, map))->north_east = river_a + flow;
+            (coord_to_tile(edge.b, map))->north_east = river_b;
             break;
         case 5:
             (coord_to_tile(edge.a, map))->north_west = river_a;
-            (coord_to_tile(edge.b, map))->south_east= river_a + flow;
+            (coord_to_tile(edge.b, map))->south_east= river_b;
             break;
+    }
+}
+/// @brief  Generates 2 random drones - Red drone and Blue drone using a random
+///     number generation scheme that attempts to create two unique drones.
+/// @param drone_1 
+/// @param drone_2 
+/// @param board_ptr  The starting tile of the map.
+void randomize_drone(DRONE *drone_1, DRONE* drone_2, MAP map){
+    time_t t;
+    srand((unsigned) time(&t));
+    int random1 = rand() % 65536;
+
+    drone_1->Loc.col = (random1) % map.size.col;
+    drone_1->Loc.row = (random1 / 10) %  map.size.row;
+    drone_1->heading = random1 % 6;
+    int tile_position = drone_1->Loc.col + (map.size.col * drone_1->Loc.row);
+
+    int random2 = rand() % 131072;
+    drone_2->Loc.col = (random2 / 10 ) % map.size.col;
+    drone_2->Loc.row = random2 % map.size.row;
+    drone_2->heading = (random2 /100) % 6;
+    tile_position = drone_2->Loc.col + (map.size.col *drone_2->Loc.row);
+}
+
+/// @brief Calculates the elevation change between two tiles. If either Tile is 
+///     NULL,returns -200
+/// @param a 
+/// @param b 
+/// @return 
+int elevation_change(TILE *a, TILE *b){
+    if (a == NULL || b == NULL)
+        return -200;
+    return b->height - a->height;
+}
+
+/// @brief This is intended to run every time the drone travels by "normal" 
+///     means. Reports features after travel, so reported feature on opposite
+///     side of the compass. (+3 direction)
+/// @param global_direction Direction travelled
+/// @param drone_offset     Used to convert to relative direction for reports
+/// @param origin_height    Previous tile's height - needed to report Alt change
+/// @param map_hex          Current map hex
+/// @return 
+int travel_report(int global_direction, int drone_offset, 
+                    int origin_height, TILE *map_hex){
+    char feature;
+    if (map_hex == NULL){
+        printf("OBSTRUCTION FOUND!! cannot proceed %s", 
+                DIRECTION[(global_direction+drone_offset)%6]);
+                return -1;
+    }
+    printf("Drone moves %s:\n", DIRECTION[(global_direction+6-drone_offset)%6]);
+
+    printf("Altitude Change: %+d\n", map_hex->height - origin_height);
+    printf("Updated ");
+    print_biome_code(map_hex);
+    printf("\n");
+    if ('\0' != (feature = feature_check((global_direction + 3) % 6, map_hex))){
+        printf("Crossed ");
+        print_features(global_direction + 6 - drone_offset + 3, feature);
+        printf("\n");
     }
 }
