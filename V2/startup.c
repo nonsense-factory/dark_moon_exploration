@@ -55,6 +55,11 @@ int main(int argc, char* argv[]){
     drone_1.Loc.col = 9;
     drone_1.Loc.row = 7;
     drone_1.heading = 0;
+    drone_1.turn_count = 0;
+    drone_2.Loc.col = 4;
+    drone_2.Loc.row = 5;
+    drone_2.heading = 1;
+    drone_2.turn_count = 0;
     // drone_1.Loc.c = 7;
     // drone_1.Loc.r = 7;
     // PrintMap(map);

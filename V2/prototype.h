@@ -48,6 +48,7 @@ typedef struct drone
 {
   COORD Loc;
   int heading;
+  short turn_count;
   //Other stuff
 } DRONE;
 
@@ -75,6 +76,8 @@ static char SHORE[2][7] = {" ", " shore"};
 
 static char MOVEMENT_STEP[4][8] = {"explore", "ride", "plan", "abandon"};
 
+static char DRONE_NAME[2][5] = { "Red", "Blue" };
+
 
 // MAP build_map(FILE* in_fp);
 MAP   BuildMap(FILE *elevation_fp, FILE *biome_fp, FILE *river_fp);
@@ -100,7 +103,7 @@ int   TravelReport(int global_direction, int drone_offset,
                     int old_height, TILE *map_hex);
 int   StrategicAction();
 int   MovementAction(DRONE* drone, MAP map);
-int   SurveyAction(DRONE* red_drone, DRONE* blue_drone, MAP map);
+int   SurveyAction(int id, DRONE* drone, MAP map);
 int   Explore(DRONE *drone, MAP map);
 int   Abandon(DRONE *drone, MAP map);
 int   Ride(DRONE *drone, MAP map);

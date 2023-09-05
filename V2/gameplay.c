@@ -75,16 +75,20 @@ void StrToLower(char *to_lower){
 // Game Entry Point and Main loop:
 int GameStart(char game_type, MAP map, DRONE *red_drone, DRONE *blue_drone){
     printf("Game begins\n\n");
+    SurveyAction(0, red_drone, map);
+    SurveyAction(1, blue_drone, map);
     int fun = 1;
     int turn = 0;
     // Main Game loop - One turn per loop:    
+                                                        // TO DO print next input expected based on each drone ID and drone->turn_count 
     do {
         turn++;
         fun = StrategicAction();
 	if (fun == 0) continue;
         fun = MovementAction(red_drone, map);
 	if (fun == 0) continue;
-        fun = SurveyAction(red_drone, blue_drone, map);        
+        fun = SurveyAction(0, red_drone, map);        
+        fun = SurveyAction(1, blue_drone, map);        
     } while (fun);
     return fun;
 }
@@ -229,7 +233,9 @@ char FeatureCheck(int global_direction, TILE *map_hex){
 
 
 int StrategicAction(){
-  return 1;
+    drone->turn_count++;
+    drone->turn_count %= 4;
+    return 1;
 };
 
 
@@ -247,7 +253,8 @@ int MovementAction(DRONE* drone ,MAP map){
     int abandon = (*movement[command])(drone, map);    
     if (abandon == -1)
         return 0;
-
+    drone->turn_count++;
+    drone->turn_count %= 4;
     return 1;
 };
 
@@ -259,10 +266,11 @@ int StringToCommand(char *ptr){
     return -1;
 }
 
-int SurveyAction(DRONE *red_drone, DRONE *blue_drone, MAP map){
-    printf("\nSurvey Action Begin: \n");
-    Survey(red_drone, map);
-    // suvey(blue_drone, map);
+int SurveyAction(int id, DRONE *drone, MAP map){
+    printf("\n%s Drone Survey Action Begin: \n", DRONE_NAME[id]);
+    Survey(drone, map);
+    drone->turn_count++; 
+    drone->turn_count %= 4;
     return 1;
 };
   
