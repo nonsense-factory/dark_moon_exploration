@@ -83,7 +83,7 @@ int GameStart(char game_type, MAP map, DRONE *red_drone, DRONE *blue_drone){
                                                         // TO DO print next input expected based on each drone ID and drone->turn_count 
     do {
         turn++;
-        fun = StrategicAction();
+        fun = StrategicAction(red_drone, map);
 	if (fun == 0) continue;
         fun = MovementAction(red_drone, map);
 	if (fun == 0) continue;
@@ -232,14 +232,14 @@ char FeatureCheck(int global_direction, TILE *map_hex){
 }
 
 
-int StrategicAction(){
+int StrategicAction(DRONE* drone, MAP map){
     drone->turn_count++;
     drone->turn_count %= 4;
     return 1;
 };
 
 
-int MovementAction(DRONE* drone ,MAP map){
+int MovementAction(DRONE* drone, MAP map){
     int (*movement[])(DRONE*, MAP) = {Explore, Plan, Ride, Abandon};
     char command_str[40];
     char *command_ptr = command_str;

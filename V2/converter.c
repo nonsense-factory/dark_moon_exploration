@@ -238,4 +238,5 @@ int TravelReport(int global_direction, int drone_offset, int old_height, TILE *m
         PrintFeatures(global_direction + 6 - drone_offset + 3, feature);
     
     }
+    return 0;
 }
